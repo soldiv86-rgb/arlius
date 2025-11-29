@@ -1,14 +1,18 @@
--- Auto favorite state
-local autoFavorite = false
+-- Variables
 local petId = "{9c8926b2-0362-4019-85e7-905ea7a8433a}"
+local fruitName = "Carrot [0.38kg]"
+local autoFavorite = false
 
--- Start auto-favoriting loop
+-- Function to start auto-favoriting fruit
 local function startAutoFavorite()
     if autoFavorite then return end
     autoFavorite = true
     spawn(function()
         while autoFavorite do
-            local item = game.Players.LocalPlayer.Character:FindFirstChild("Carrot [0.38kg]")
+            local player = game.Players.LocalPlayer
+            -- Check both Backpack and Character for the fruit
+            local item = player.Backpack:FindFirstChild(fruitName) 
+                        or player.Character:FindFirstChild(fruitName)
             if item then
                 game.ReplicatedStorage.GameEvents.Favorite_Item:FireServer(item)
             end
@@ -17,20 +21,19 @@ local function startAutoFavorite()
     end)
 end
 
--- Stop auto-favoriting loop
+-- Function to stop auto-favoriting fruit
 local function stopAutoFavorite()
     autoFavorite = false
 end
 
--- Hook PetsService:FireServer to handle dynamic CFrame and auto loop
+-- Hook PetsService:FireServer to detect equip/unequip dynamically
 local PetsService = game.ReplicatedStorage.GameEvents.PetsService
 local oldFireServer = PetsService.FireServer
 
 PetsService.FireServer = function(self, action, id, cframe)
-    -- Dynamically get CFrame if not provided or incorrect
+    -- Determine CFrame dynamically if equipping the pet
     local finalCFrame = cframe
     if action == "EquipPet" and id == petId then
-        -- Try to get the pet's current CFrame from Backpack or Character
         local player = game.Players.LocalPlayer
         local pet = player.Backpack:FindFirstChild(id) or player.Character:FindFirstChild(id)
         if pet and pet.PrimaryPart then
@@ -40,10 +43,10 @@ PetsService.FireServer = function(self, action, id, cframe)
         end
     end
 
-    -- Call original FireServer
+    -- Call the original FireServer
     oldFireServer(self, action, id, finalCFrame)
 
-    -- Auto loop control
+    -- Auto start/stop favorite loop
     if id == petId then
         if action == "EquipPet" then
             startAutoFavorite()
