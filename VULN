@@ -4,7 +4,7 @@ local autoFavorite = false
 -- Function to start auto-favoriting
 local function startAutoFavorite()
     autoFavorite = true
-    spawn(function() -- runs in a separate thread
+    spawn(function()
         while autoFavorite do
             local item = game.Players.LocalPlayer.Backpack:FindFirstChild("Carrot [0.38kg]")
             if item then
@@ -21,10 +21,11 @@ local function stopAutoFavorite()
 end
 
 -- Equip pet and start auto-favoriting
+-- Use CFrame.new() without hardcoding coordinates
 game.ReplicatedStorage.GameEvents.PetsService:FireServer(
     "EquipPet",
     "{9c8926b2-0362-4019-85e7-905ea7a8433a}",
-    CFrame.new(-18.4633, -9.5367e-07, -115.4868) * CFrame.Angles(0, 0, 0)
+    CFrame.new() -- default CFrame, will work regardless of position
 )
 startAutoFavorite()
 
