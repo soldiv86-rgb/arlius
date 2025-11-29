@@ -1,57 +1,53 @@
--- Variables
-local petId = "{9c8926b2-0362-4019-85e7-905ea7a8433a}"
-local fruitName = "Carrot [0.38kg]"
-local autoFavorite = false
+-- Pet-Triggered Auto Carrot Favoriter (Execute this ONCE)
+-- Starts auto-favoriting carrots IMMEDIATELY AFTER equipping the specific pet
+-- Stops ONLY when unequipping that same pet
+-- Works even if you equip/unequip via GUI or your original scripts!
 
--- Function to start auto-favoriting fruit
-local function startAutoFavorite()
-    if autoFavorite then return end
-    autoFavorite = true
-    spawn(function()
-        while autoFavorite do
+local mt = getrawmetatable(game)
+local old_namecall = mt.__namecall
+setreadonly(mt, false)
+
+mt.__namecall = newcclosure(function(self, ...)
+    local args = {...}
+    local method = getnamecallmethod()
+    
+    if method == "FireServer" and 
+       self == game:GetService("ReplicatedStorage").GameEvents.PetsService and
+       typeof(args[1]) == "string" then
+        
+        if args[1] == "EquipPet" and 
+           args[2] == "{9c8926b2-0362-4019-85e7-905ea7a8433a}" then
+            _G.auto = true
+            print("🟢 Auto Carrot Favoriter STARTED! (Pet equipped)")
+            
+        elseif args[1] == "UnequipPet" and 
+               args[2] == "{9c8926b2-0362-4019-85e7-905ea7a8433a}" then
+            _G.auto = false
+            print("🔴 Auto Carrot Favoriter STOPPED! (Pet unequipped)")
+        end
+    end
+    
+    return old_namecall(self, ...)
+end)
+
+setreadonly(mt, true)
+
+-- Infinite loop that only acts when _G.auto == true
+task.spawn(function()
+    while true do
+        if _G.auto then
             local player = game.Players.LocalPlayer
-            -- Check both Backpack and Character for the fruit
-            local item = player.Backpack:FindFirstChild(fruitName) 
-                        or player.Character:FindFirstChild(fruitName)
-            if item then
-                game.ReplicatedStorage.GameEvents.Favorite_Item:FireServer(item)
+            local carrot = player.Backpack:FindFirstChild("Carrot [0.38kg]") 
+                        or (player.Character and player.Character:FindFirstChild("Carrot [0.38kg]"))
+            
+            if carrot then
+                game.ReplicatedStorage.GameEvents.Favorite_Item:FireServer(carrot)
             end
-            wait(0.2)
         end
-    end)
-end
-
--- Function to stop auto-favoriting fruit
-local function stopAutoFavorite()
-    autoFavorite = false
-end
-
--- Hook PetsService:FireServer to detect equip/unequip dynamically
-local PetsService = game.ReplicatedStorage.GameEvents.PetsService
-local oldFireServer = PetsService.FireServer
-
-PetsService.FireServer = function(self, action, id, cframe)
-    -- Determine CFrame dynamically if equipping the pet
-    local finalCFrame = cframe
-    if action == "EquipPet" and id == petId then
-        local player = game.Players.LocalPlayer
-        local pet = player.Backpack:FindFirstChild(id) or player.Character:FindFirstChild(id)
-        if pet and pet.PrimaryPart then
-            finalCFrame = pet.PrimaryPart.CFrame
-        else
-            finalCFrame = CFrame.new() -- fallback
-        end
+        task.wait(0.2)  -- Set to 0.2 as requested
     end
+end)
 
-    -- Call the original FireServer
-    oldFireServer(self, action, id, finalCFrame)
-
-    -- Auto start/stop favorite loop
-    if id == petId then
-        if action == "EquipPet" then
-            startAutoFavorite()
-        elseif action == "UnequipPet" then
-            stopAutoFavorite()
-        end
-    end
-end
+print("✅ Pet-Triggered Auto Carrot Favoriter LOADED! (0.2s loop)")
+print("💡 Equip pet {9c8926b2-0362-4019-85e7-905ea7a8433a} to START | Unequip to STOP")
+print("💡 Works with GUI, your scripts, or anything! No need to modify them.")
