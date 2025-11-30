@@ -1,236 +1,128 @@
--- Egg Enhancer UI - Compact + Draggable Toggle Button (Perfect for Mobile & PC)
--- LocalScript → StarterGui
+-- Egg Enhancer - by Jandel (Short & Clean)
+local TS = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local Player = game.Players.LocalPlayer
+local PG = Player:WaitForChild("PlayerGui")
 
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local GUI = Instance.new("ScreenGui", PG)
+GUI.Name = "JandelUI"
+GUI.ResetOnSpawn = false
+GUI.DisplayOrder = 999
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "EggEnhancerUI"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = playerGui
+-- Main Frame
+local Frame = Instance.new("Frame", GUI)
+Frame.Size = UDim2.fromScale(0.72, 0.68)
+Frame.Position = UDim2.fromScale(0.5, 0.5)
+Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+Frame.BackgroundColor3 = Color3.fromRGB(15,15,15)
+Frame.Visible = false
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,18)
+Instance.new("UIStroke", Frame).Color = Color3.fromRGB(80,80,80)
 
--- ================= MAIN UI FRAME (Compact) =================
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.fromScale(0.75, 0.7)        -- Smaller: 75% width, 70% height
-MainFrame.Position = UDim2.fromScale(0.5, 0.5)
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-MainFrame.BorderSizePixel = 0
-MainFrame.Visible = false
-MainFrame.ZIndex = 10
-MainFrame.Parent = ScreenGui
-
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 16)
-UICorner.Parent = MainFrame
-
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(70, 70, 70)
-UIStroke.Thickness = 2
-UIStroke.Parent = MainFrame
-
--- Title Bar
-local TitleBar = Instance.new("Frame")
-TitleBar.Size = UDim2.fromScale(1, 0.12)
-TitleBar.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-TitleBar.Parent = MainFrame
-
-local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 16)
-TitleCorner.Parent = TitleBar
-
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.fromScale(0.7, 1)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "Egg Enhancer - by Jandel"
-TitleLabel.TextColor3 = Color3.new(1, 1, 1)
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextScaled = true
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.Parent = TitleBar
-
-local Padding = Instance.new("UIPadding")
-Padding.PaddingLeft = UDim.new(0, 15)
-Padding.Parent = TitleLabel
+-- Title
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.fromScale(1, 0.14)
+Title.BackgroundColor3 = Color3.fromRGB(20,20,20)
+Title.Text = "Egg Enhancer - by Jandel"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Font = Enum.Font.GothamBold
+Title.TextScaled = true
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Instance.new("UIPadding", Title).PaddingLeft = UDim.new(0,18)
+Instance.new("UICorner", Title).CornerRadius = UDim.new(0,18)
 
 -- Close Button
-local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.fromScale(0.11, 0.7)
-CloseButton.Position = UDim2.fromScale(0.96, 0.15)
-CloseButton.AnchorPoint = Vector2.new(1, 0)
-CloseButton.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
-CloseButton.Text = "X"
-CloseButton.TextColor3 = Color3.new(1, 1, 1)
-CloseButton.TextScaled = true
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.Parent = TitleBar
-
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 10)
-CloseCorner.Parent = CloseButton
-
--- Tabs Bar
-local TabButtonsFrame = Instance.new("Frame")
-TabButtonsFrame.Size = UDim2.fromScale(1, 0.1)
-TabButtonsFrame.Position = UDim2.fromScale(0, 0.12)
-TabButtonsFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-TabButtonsFrame.Parent = MainFrame
-
-local TabLayout = Instance.new("UIListLayout")
-TabLayout.FillDirection = Enum.FillDirection.Horizontal
-TabLayout.Padding = UDim.new(0, 4)
-TabLayout.Parent = TabButtonsFrame
-
--- Content Area
-local TabContent = Instance.new("Frame")
-TabContent.Size = UDim2.fromScale(0.94, 0.74)
-TabContent.Position = UDim2.fromScale(0.03, 0.23)
-TabContent.BackgroundTransparency = 1
-TabContent.Parent = MainFrame
+local Close = Instance.new("TextButton", Title)
+Close.Size = UDim2.fromScale(0.11, 0.7)
+Close.Position = UDim2.fromScale(0.96, 0.15)
+Close.AnchorPoint = Vector2.new(1,0)
+Close.BackgroundColor3 = Color3.fromRGB(220,40,40)
+Close.Text = "X"
+Close.TextScaled = true
+Instance.new("UICorner", Close).CornerRadius = UDim.new(0,12)
 
 -- Tabs
-local Tabs = {
-	{ Name = "Fruit Name & Pet UUID" },
-	{ Name = "Koi UUID" },
-	{ Name = "Seal UUID" }
-}
+local TabsFrame = Instance.new("Frame", Frame)
+TabsFrame.Size = UDim2.fromScale(1, 0.11)
+TabsFrame.Position = UDim2.fromScale(0, 0.14)
+TabsFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+local Layout = Instance.new("UIListLayout", TabsFrame)
+Layout.FillDirection = Enum.FillDirection.Horizontal
+Layout.Padding = UDim.new(0,6)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-local currentTab = nil
-local function openTab(i)
-	if currentTab then
-		currentTab.Content.Visible = false
-		currentTab.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	end
-	local tab = Tabs[i]
-	currentTab = tab
-	tab.Content.Visible = true
-	tab.Button.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
-end
+local Content = Instance.new("Frame", Frame)
+Content.Size = UDim2.fromScale(0.94, 0.71)
+Content.Position = UDim2.fromScale(0.03, 0.26)
+Content.BackgroundTransparency = 1
 
-for i, tab in ipairs(Tabs) do
-	-- Button
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.fromScale(0.328, 0.85)
-	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	btn.Text = tab.Name
-	btn.TextColor3 = Color3.new(1, 1, 1)
+local TabList = {"Fruit Name & Pet UUID", "Koi UUID", "Seal UUID"}
+local Current
+
+for i, name in ipairs(TabList) do
+	local btn = Instance.new("TextButton", TabsFrame)
+	btn.Size = UDim2.fromScale(0.31, 0.85)
+	btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	btn.Text = name
 	btn.TextScaled = true
-	btn.Font = Enum.Font.GothamSemibold
-	btn.Parent = TabButtonsFrame
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 10)
-	corner.Parent = btn
-
-	tab.Button = btn
-
-	-- Content
-	local content = Instance.new("ScrollingFrame")
-	content.Size = UDim2.fromScale(1, 1)
-	content.BackgroundTransparency = 1
-	content.ScrollBarThickness = 5
-	content.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	content.Visible = false
-	content.Parent = TabContent
-
-	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 12)
-	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	layout.Parent = content
-
-	local pad = Instance.new("UIPadding")
-	pad.PaddingTop = UDim.new(0, 15)
-	pad.PaddingLeft = UDim.new(0, 10)
-	pad.PaddingRight = UDim.new(0, 10)
-	pad.Parent = content
-
-	-- Placeholder
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.fromScale(0.95, 0)
-	label.AutomaticSize = Enum.AutomaticSize.Y
-	label.BackgroundTransparency = 1
-	label.Text = "Ready — Add your inputs here\n\nTab: " .. tab.Name
-	label.TextColor3 = Color3.fromRGB(200, 200, 200)
-	label.TextWrapped = true
-	label.TextScaled = true
-	label.Font = Enum.Font.Gotham
-	label.Parent = content
-
-	tab.Content = content
-	btn.MouseButton1Click:Connect(function() openTab(i) end)
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,12)
+	
+	local page = Instance.new("ScrollingFrame", Content)
+	page.Size = UDim2.fromScale(1,1)
+	page.BackgroundTransparency = 1
+	page.Visible = false
+	page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	Instance.new("UIListLayout", page).Padding = UDim.new(0,15)
+	
+	btn.MouseButton1Click:Connect(function()
+		if Current then Current.Visible = false end
+		Current = page; page.Visible = true
+		for _, b in pairs(TabsFrame:GetChildren()) do
+			if b:IsA("TextButton") then b.BackgroundColor3 = Color3.fromRGB(40,40,40) end
+		end
+		btn.BackgroundColor3 = Color3.fromRGB(70,140,255)
+	end)
+	
+	if i == 1 then btn.BackgroundColor3 = Color3.fromRGB(70,140,255); page.Visible = true; Current = page end
 end
 
-openTab(1)
+-- Draggable J Button (Black)
+local J = Instance.new("TextButton", GUI)
+J.Size = UDim2.fromOffset(60,60)
+J.Position = UDim2.fromScale(0.05, 0.8)
+J.BackgroundColor3 = Color3.new(0,0,0)
+J.Text = "J"
+J.TextColor3 = Color3.new(1,1,1)
+J.Font = Enum.Font.GothamBold
+J.TextScaled = true
+Instance.new("UICorner", J).CornerRadius = UDim.new(0,30)
 
--- ================= DRAGGABLE TOGGLE BUTTON (Egg) =================
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.fromOffset(65, 65)
-ToggleButton.Position = UDim2.fromScale(0.05, 0.8)  -- Default bottom-leftish
-ToggleButton.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
-ToggleButton.Text = "Egg"
-ToggleButton.TextColor3 = Color3.new(1, 1, 1)
-ToggleButton.TextScaled = true
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.ZIndex = 20
-ToggleButton.Parent = ScreenGui
-
-local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(0, 32)
-ToggleCorner.Parent = ToggleButton
-
-local ToggleStroke = Instance.new("UIStroke")
-ToggleStroke.Color = Color3.fromRGB(100, 180, 255)
-ToggleStroke.Thickness = 3
-ToggleStroke.Parent = ToggleButton
-
--- Make Toggle Button Draggable
-local dragging = false
-local dragStart, startPos
-
-ToggleButton.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = ToggleButton.Position
+-- Drag J
+local dragging, startPos, startInput
+J.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+	dragging = true; startInput = i.Position; startPos = J.Position end end)
+J.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
+UIS.InputChanged:Connect(function(i)
+	if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+		local delta = i.Position - startInput
+		J.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
 end)
 
-ToggleButton.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = false
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-		local delta = input.Position - dragStart
-		ToggleButton.Position = UDim2.new(
-			startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y
-		)
-	end
-end)
-
--- Toggle UI Open/Close
-local isOpen = false
-local function toggleUI()
-	isOpen = not isOpen
-	MainFrame.Visible = isOpen
-
-	if isOpen then
-		MainFrame.Position = UDim2.fromScale(0.5, 1.5)
-		TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.fromScale(0.5, 0.5)}):Play()
+-- Toggle
+local open = false
+local function toggle()
+	open = not open
+	Frame.Visible = open
+	if open then
+		Frame.Position = UDim2.fromScale(0.5, -0.6)
+		TS:Create(Frame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.fromScale(0.5, 0.5)}):Play()
 	else
-		TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.fromScale(0.5, -1)}):Play()
-		task.wait(0.45)
-		if not isOpen then MainFrame.Visible = false end
+		TS:Create(Frame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.fromScale(0.5, -1)}):Play()
 	end
 end
 
-ToggleButton.MouseButton1Click:Connect(toggleUI)
-CloseButton.MouseButton1Click:Connect(toggleUI)
+J.MouseButton1Click:Connect(toggle)
+Close.MouseButton1Click:Connect(toggle)
 
-print("Egg Enhancer UI Loaded | Drag the Egg button anywhere | Perfect size now!")
+print("Jandel UI Loaded | Drag the black J button")
