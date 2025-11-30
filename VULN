@@ -1,188 +1,108 @@
--- GROW A GARDEN – SUPER SIMPLE AUTO FEEDER (WORKS 100%)
--- Execute once → UI appears → pick fruit → pick pet → press START → profit
+-- GROW A GARDEN – SIMPLE INPUT UI AUTO FEEDER (Manual UUID + Fruit Name)
+-- Enter exact fruit name & pet UUID → START → feeds ONLY when pet equipped!
 
-local player = game.Players.LocalPlayer
-local backpack = player:WaitForChild("Backpack")
-local char = player.Character or player.CharacterAdded:Wait()
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
 
-local RS = game:GetService("ReplicatedStorage")
-local Favorite_Item = RS:WaitForChild("GameEvents"):WaitForChild("Favorite_Item")
+local GameEvents = ReplicatedStorage:WaitForChild("GameEvents")
+local Favorite_Item = GameEvents:WaitForChild("Favorite_Item")
 
--- Variables
-local selectedFruit = nil
-local selectedPet = nil
 local running = false
+local selectedFruit = ""
+local selectedUUID = ""
 
--- Create UI
-local sg = Instance.new("ScreenGui")
-sg")
-sg.Name = "SimpleGardenAuto"
-sg.ResetOnSpawn = false
-sg.Parent = game.CoreGui
+-- UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "GardenInputUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 350, 0, 450)
-frame.Position = UDim2.new(0.5, -175, 0.5, -225)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-frame.Parent = sg
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 420, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -160)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
 
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0,15)
+local UICorner1 = Instance.new("UICorner")
+UICorner1.CornerRadius = UDim.new(0, 12)
+UICorner1.Parent = MainFrame
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,0,0,50)
-title.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-title.Text = "Grow a Garden Auto"
-title.TextColor3 = Color3.new(1,1,1)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 24
-title.Parent = frame
-Instance.new("UICorner", title).CornerRadius = UDim.new(0,15)
+-- Top Bar
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 50)
+TopBar.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
 
-local close = Instance.new("TextButton")
-close.Size = UDim2.new(0,40,0,40)
-close.Position = UDim2.new(1,-45,0,5)
-close.BackgroundTransparency = 1
-close.Text = "X"
-close.TextColor3 = Color3.new(1,1,1)
-close.TextSize = 30
-close.Parent = close.Parent = title
-close.MouseButton1Click:Connect(function() sg:Destroy() end)
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -60, 1, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🌱 Auto Feeder - Enter Fruit & Pet UUID"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
 
--- Fruit list
-local fruitLabel = Instance.new("TextLabel")
-fruitLabel.Size = UDim2.new(1,-20,0,30)
-fruitLabel.Position = UDim2.new(0,10,0,60)
-fruitLabel.BackgroundTransparency = 1
-fruitLabel.Text = "Select Fruit:"
-fruitLabel.TextColor3 = Color3.new(1,1,1)
-fruitLabel.TextXAlignment = Enum.TextXAlignment.Left
-fruitLabel.Font = Enum.Font.GothamBold
-fruitLabel.TextSize = 20
-fruitLabel.Parent = frame
-
-local fruitBox = Instance.new("ScrollingFrame")
-fruitBox.Size = UDim2.new(1,-20,0,140)
-fruitBox.Position = UDim2.new(0,10,0,95)
-fruitBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
-fruitBox.ScrollBarThickness = 6
-fruitBox.Parent = frame
-
--- Pet list
-local petLabel = Instance.new("TextLabel")
-petLabel.Size = UDim2.new(1,-20,0,30)
-petLabel.Position = UDim2.new(0,10,0,250)
-petLabel.BackgroundTransparency = 1
-petLabel.Text = "Select Pet:"
-petLabel.TextColor3 = Color3.new(1,1,1)
-petLabel.TextXAlignment = Enum.TextXAlignment.Left
-petLabel.Font = Enum.Font.GothamBold
-petLabel.TextSize = 20
-petLabel.Parent = frame
-
-local petBox = Instance.new("ScrollingFrame")
-petBox.Size = UDim2.new(1,-20,0,100)
-petBox.Position = UDim2.new(0,10,0,285)
-petBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
-petBox.ScrollBarThickness = 6
-petBox.Parent = frame
-
--- Start button
-local startBtn = Instance.new("TextButton")
-startBtn.Size = UDim2.new(1,-40,0,60)
-startBtn.Position = UDim2.new(0,20,1,-80)
-startBtn.BackgroundColor3 = Color3.fromRGB(0,200,0)
-startBtn.Text = "START AUTO"
-startBtn.TextColor3 = Color3.new(1,1,1)
-startBtn.TextSize = 28
-startBtn.Font = Enum.Font.GothamBold
-startBtn.Parent = frame
-Instance.new("UICorner", startBtn).CornerRadius = UDim.new(0,12)
-
-local status = Instance.new("TextLabel")
-status.Size = UDim2.new(1,-20,0,30)
-status.Position = UDim2.new(0,10,1,-25)
-status.BackgroundTransparency = 1
-status.Text = "Choose fruit & pet then press START"
-status.TextColor3 = Color3.new(1,1,1)
-status.TextSize = 18
-status.Parent = frame
-
--- Refresh function
-local function refresh()
-    fruitBox:ClearAllChildren()
-    petBox:ClearAllChildren()
-
-    for _, tool in pairs(backpack:GetChildren()) do
-        if tool:IsA("Tool") then
-            local name = tool.Name
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1,-10,0,40)
-            btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-            btn.TextColor3 = Color3.new(1,1,1)
-            btn.TextScaled = true
-            btn.Font = Enum.Font.Gotham
-            btn.Text = name
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
-
-            if string.find(name, "kg") and not string.find(name, "Age") then
-                -- It's a fruit
-                btn.Parent = fruitBox
-                btn.MouseButton1Click:Connect(function()
-                    selectedFruit = name
-                    status.Text = "Fruit: " .. name
-                end)
-            elseif string.find(name, "Age") then
-                -- It's a pet
-                btn.Parent = petBox
-                btn.MouseButton1Click:Connect(function()
-                    selectedPet = name
-                    status.Text = status.Text .. " | Pet: " .. name
-                end)
-            end
-        end
-    end
-end
-
--- Start/Stop button
-startBtn.MouseButton1Click:Connect(function()
-    if not selectedFruit or not selectedPet then
-        status.Text = "Select both first!"
-        return
-    end
-
-    running = not running
-    if running then
-        startBtn.Text = "STOP AUTO"
-        startBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
-        status.Text = "RUNNING → " .. selectedFruit
-    else
-        startBtn.Text = "START AUTO"
-        startBtn.BackgroundColor3 = Color3.fromRGB(0,200,0)
-        status.Text = "Stopped"
-    end
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 50, 0, 50)
+CloseButton.Position = UDim2.new(1, -55, 0, 0)
+CloseButton.BackgroundTransparency = 1
+CloseButton.Text = "✕"
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 24
+CloseButton.Parent = TopBar
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    running = false
 end)
 
--- Auto feed loop
-spawn(function()
-    while wait(0.2) do
-        if running and selectedFruit then
-            local fruit = backpack:FindFirstChild(selectedFruit) or (char and char:FindFirstChild(selectedFruit))
-            if fruit then
-                Favorite_Item:FireServer(fruit)
-            end
-        end
-    end
-end)
+-- Fruit Input
+local FruitLabel = Instance.new("TextLabel")
+FruitLabel.Size = UDim2.new(1, -20, 0, 30)
+FruitLabel.Position = UDim2.new(0, 10, 0, 65)
+FruitLabel.BackgroundTransparency = 1
+FruitLabel.Text = "Fruit Name (exact, e.g. \"Carrot [0.38kg]\"):"
+FruitLabel.TextColor3 = Color3.new(1, 1, 1)
+FruitLabel.Font = Enum.Font.GothamBold
+FruitLabel.TextSize = 14
+FruitLabel.TextXAlignment = Enum.TextXAlignment.Left
+FruitLabel.Parent = MainFrame
 
--- Auto refresh when backpack changes
-backpack.ChildAdded:Connect(refresh)
-backpack.ChildRemoved:Connect(refresh)
-player.CharacterAdded:Connect(function(c) char = c end)
+local FruitInput = Instance.new("TextBox")
+FruitInput.Size = UDim2.new(1, -20, 0, 40)
+FruitInput.Position = UDim2.new(0, 10, 0, 95)
+FruitInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FruitInput.BorderSizePixel = 0
+FruitInput.PlaceholderText = "Enter fruit name here..."
+FruitInput.Text = ""
+FruitInput.TextColor3 = Color3.new(1, 1, 1)
+FruitInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+FruitInput.Font = Enum.Font.Gotham
+FruitInput.TextSize = 16
+FruitInput.TextXAlignment = Enum.TextXAlignment.Left
+FruitInput.Parent = MainFrame
 
--- First refresh
-refresh()
+local FruitCorner = Instance.new("UICorner")
+FruitCorner.CornerRadius = UDim.new(0, 8)
+FruitCorner.Parent = FruitInput
 
-print("Simple Grow a Garden Auto loaded! UI is now visible.")
+-- Pet UUID Input
+local PetLabel = Instance.new("TextLabel")
+PetLabel.Size = UDim2.new(1, -20, 0, 30)
+PetLabel.Position = UDim2.new(0, 10, 0, 150)
+PetLabel.BackgroundTransparency = 1
+PetLabel.Text = "Pet UUID (e.g. \"{9c8926b2-0362-4019-85e7-905ea7a8433a}\"):"
+PetLabel.TextColor3 = Color3.new(1, 1, 1)
+PetLabel.Font = Enum.Font.GothamBold
+PetLabel.TextSize = 14
+PetLabel.TextXAlignment = Enum.TextXAlignment.Left
+PetLabel.Parent = MainFrame
+
+local PetInput = Instance.new("TextBox")
+PetInput.Size =
