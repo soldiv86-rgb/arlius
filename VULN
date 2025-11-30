@@ -1,59 +1,203 @@
--- Grow a Garden - Auto Favorite/Unfavorite Fruit ONLY when your pet is equipped
--- No UI, no spam, just works
+-- Egg Enhancer UI - Dark Theme by Jandel
+-- Place this as a LocalScript in StarterGui or StarterPlayerScripts
 
-local player = game.Players.LocalPlayer
-local Favorite_Item = game.ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Favorite_Item")
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
--- CHANGE THESE TWO LINES ----------------------------------------------------
-local FRUIT_NAME = "Carrot [0.38kg"           -- ← Your fruit base name (e.g. Kiwi, Carrot, Banana)
-local PET_UUID   = "{9c36deba-17c3-4b0f-a102-e0b45c5ed0e6}"  -- ← Paste your pet's UUID here
--- ---------------------------------------------------------------------------
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "EggEnhancerUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = playerGui
 
-local running = false
+-- Main Frame (Rounded + Dark)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 500, 0, 600)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+MainFrame.Parent = ScreenGui
 
-spawn(function()
-    while wait(0.5) do
-        local petEquipped = false
-        
-        -- Check if pet is equipped (in Character)
-        if player.Character then
-            for _, tool in pairs(player.Character:GetChildren()) do
-                if tool:IsA("Tool") and string.find(tool.Name, PET_UUID) then
-                    petEquipped = true
-                    break
-                end
-            end
-        end
-        
-        -- Start/stop auto fav/unfav
-        if petEquipped and not running then
-            running = true
-            print("Pet equipped → Auto fav/unfav STARTED")
-        elseif not petEquipped and running then
-            running = false
-            print("Pet unequipped → Auto fav/unfav STOPPED")
-        end
-    end
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 16)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(60, 60, 60)
+UIStroke.Thickness = 2
+UIStroke.Parent = MainFrame
+
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 50)
+TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 16)
+TitleCorner.Parent = TitleBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "Title"
+TitleLabel.Size = UDim2.new(1, -100, 1, 0)
+TitleLabel.Position = UDim2.new(0, 20, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Egg Enhancer - by Jandel"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 20
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = TitleBar
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, 40, 0, 40)
+CloseButton.Position = UDim2.new(1, -50, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 20
+CloseButton.Parent = TitleBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 12)
+CloseCorner.Parent = CloseButton
+
+-- Tab Buttons Frame
+local TabButtonsFrame = Instance.new("Frame")
+TabButtonsFrame.Size = UDim2.new(1, 0, 0, 50)
+TabButtonsFrame.Position = UDim2.new(0, 0, 0, 50)
+TabButtonsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TabButtonsFrame.BorderSizePixel = 0
+TabButtonsFrame.Parent = MainFrame
+
+-- Tab Content Frame
+local TabContent = Instance.new("Frame")
+TabContent.Name = "TabContent"
+TabContent.Size = UDim2.new(1, -20, 1, -120)
+TabContent.Position = UDim2.new(0, 10, 0, 110)
+TabContent.BackgroundTransparency = 1
+TabContent.Parent = MainFrame
+
+-- Create Tabs
+local Tabs = {
+	{ Name = "Fruit Name & Pet UUID", Content = Instance.new("Frame") },
+	{ Name = "Koi UUID", Content = Instance.new("Frame") },
+	{ Name = "Seal UUID", Content = Instance.new("Frame") }
+}
+
+local currentTab = nil
+
+-- Function to switch tabs
+local function openTab(tabIndex)
+	if currentTab then
+		currentTab.Content.Visible = false
+		currentTab.Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	end
+	currentTab = Tabs[tabIndex]
+	currentTab.Content.Visible = true
+	currentTab.Button.BackgroundColor3 = Color3.fromRGB(70, 130, 240)
+end
+
+-- Create Tab Buttons + Content
+for i, tab in ipairs(Tabs) do
+	-- Tab Button
+	local button = Instance.new("TextButton")
+	button.Name = tab.Name .. "Tab"
+	button.Size = UDim2.new(0.33, -10, 1, 0)
+	button.Position = UDim2.new((i-1) * 0.33, 5, 0, 0)
+	button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	button.Text = tab.Name
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.Font = Enum.Font.GothamSemibold
+	button.TextSize = 16
+	button.Parent = TabButtonsFrame
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 10)
+	btnCorner.Parent = button
+
+	tab.Button = button
+
+	-- Tab Content Frame
+	tab.Content.Size = UDim2.new(1, 0, 1, 0)
+	tab.Content.Position = UDim2.new(0, 0, 0, 0)
+	tab.Content.BackgroundTransparency = 1
+	tab.Content.Visible = false
+	tab.Content.Parent = TabContent
+
+	-- Example content (you can customize this later)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -20, 0, 50)
+	label.Position = UDim2.new(0, 10, 0, 20)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = Color3.fromRGB(200, 200, 200)
+	label.Text = "Content for " .. tab.Name .. " goes here"
+	label.Font = Enum.Font.Gotham
+	label.TextSize = 18
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = tab.Content
+
+	-- Click event
+	button.MouseButton1Click:Connect(function()
+		openTab(i)
+	end)
+end
+
+-- Open first tab by default
+openTab(1)
+
+-- Toggle Button (Open/Close UI)
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0, 60, 0, 60)
+ToggleButton.Position = UDim2.new(0, 20, 0.5, -30)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(70, 130, 240)
+ToggleButton.Text = "Egg"
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextSize = 18
+ToggleButton.Parent = ScreenGui
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 30)
+ToggleCorner.Parent = ToggleButton
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Color = Color3.fromRGB(100, 180, 255)
+ToggleStroke.Thickness = 3
+ToggleStroke.Parent = ToggleButton
+
+-- Toggle Functionality
+local isOpen = false
+
+local function toggleUI()
+	isOpen = not isOpen
+	MainFrame.Visible = isOpen
+
+	if isOpen then
+		TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, -250, 0.5, -300)}):Play()
+	else
+		TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, -250, -1, 0)}):Play()
+	end
+end
+
+ToggleButton.MouseButton1Click:Connect(toggleUI)
+CloseButton.MouseButton1Click:Connect(toggleUI)
+
+-- Optional: Press "E" to toggle
+player:GetMouse().KeyDown:Connect(function(key)
+	if key:lower() == "e" then
+		toggleUI()
+	end
 end)
 
--- Main loop - only runs when pet is equipped
-spawn(function()
-    while wait(0.2) do
-        if running then
-            local fruit = player.Backpack:FindFirstChildWhichIsA("Tool")
-            for _, tool in pairs(player.Backpack:GetChildren()) do
-                if tool:IsA("Tool") and string.find(tool.Name, FRUIT_NAME) then
-                    fruit = tool
-                    break
-                end
-            end
-            if fruit then
-                pcall(function()
-                    Favorite_Item:FireServer(fruit)
-                end)
-            end
-        end
-    end
-end)
-
-print("Auto fav/unfav loaded! Equip your pet to start.")
+print("Egg Enhancer UI Loaded - by Jandel | Press E or click the Egg button to open")
