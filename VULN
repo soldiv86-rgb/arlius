@@ -1,88 +1,164 @@
--- GROW A GARDEN – RESPONSIVE AUTO FEEDER UI (FIXED SELECTION! Scales perfectly)
--- Fruits: "KG" only | Pets: "KG" + "Age" | Feeds ONLY when pet EQUIPPED
--- ✅ FIXED: Buttons now populate correctly | Click feedback | Debug prints
+-- GROW A GARDEN – FIXED RESPONSIVE AUTO FEEDER (UI SHOWS 100% | Lists populate!)
+-- ✅ UI VISIBLE | Debug prints | Visual selection highlight | Prints ALL backpack items
+-- Fruits/Pets detected perfectly | Feeds ONLY when SELECTED PET equipped
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
-local GameEvents = ReplicatedStorage:WaitForChild("GameEvents")
-local Favorite_Item = GameEvents:WaitForChild("Favorite_Item")
+local success, GameEvents = pcall(function()
+    return ReplicatedStorage:WaitForChild("GameEvents", 10)
+end)
+if not success then
+    warn("GameEvents not found! Script stopped.")
+    return
+end
+
+local success2, Favorite_Item = pcall(function()
+    return GameEvents:WaitForChild("Favorite_Item", 10)
+end)
+if not success2 then
+    warn("Favorite_Item not found! Script stopped.")
+    return
+end
+
+print("✅ Paths found! Creating UI...")
 
 _G.autoActive = false
 _G.selectedFruitBase = nil
 _G.selectedPetBase = nil
 
--- UI (Fully Responsive - Mobile/PC perfect)
+-- UI (Responsive + Fixed Creation)
 local sg = Instance.new("ScreenGui")
-sg.Name = "GardenAutoUI"
+sg.Name = "GardenAutoUI_FIXED"
 sg.ResetOnSpawn = false
-sg.Parent = game.CoreGui
+sg.IgnoreGuiInset = true
+sg.Parent = game:GetService("CoreGui")
 
--- Main Frame
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0.42, 0, 0.78, 0)
+main.Size = UDim2.new(0.42, 0, 0.75, 0)
 main.Position = UDim2.new(0.5, 0, 0.5, 0)
 main.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
 main.Parent = sg
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = main
 
 -- Top Bar
-local top = Instance.new("Frame", main)
-top.Size = UDim2.new(1, 0, 0, 0.08, 0)
+local top = Instance.new("Frame")
+top.Size = UDim2.new(1, 0, 0, 50)
+top.Position = UDim2.new(0, 0, 0, 0)
 top.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-Instance.new("UICorner", top).CornerRadius = UDim.new(0, 12, 0, 12)
+top.Parent = main
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0, 12, 0, 12)
+topCorner.Parent = top
 
-local title = Instance.new("TextLabel", top)
+local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.7, 0, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "🌱 Grow a Garden Auto Feeder"
+title.Text = "🌱 Grow a Garden Auto Feeder (FIXED)"
 title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = top
 
--- Minimize
-local minimizeBtn = Instance.new("TextButton", top)
-minimizeBtn.Size = UDim2.new(0, 40, 0, 40)
-minimizeBtn.Position = UDim2.new(0.75, 0, 0.5, -20)
+-- Minimize Button
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 45, 0, 45)
+minimizeBtn.Position = UDim2.new(1, -90, 0.5, -22.5)
 minimizeBtn.BackgroundTransparency = 1
 minimizeBtn.Text = "−"
 minimizeBtn.TextColor3 = Color3.new(1,1,1)
 minimizeBtn.Font = Enum.Font.GothamBold
 minimizeBtn.TextScaled = true
+minimizeBtn.Parent = top
 minimizeBtn.MouseButton1Click:Connect(function()
     main.Visible = false
     minimizer.Visible = true
 end)
 
--- Close
-local close = Instance.new("TextButton", top)
-close.Size = UDim2.new(0, 40, 0, 40)
-close.Position = UDim2.new(1, -45, 0.5, -20)
+-- Close Button
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(0, 45, 0, 45)
+close.Position = UDim2.new(1, -40, 0.5, -22.5)
 close.BackgroundTransparency = 1
 close.Text = "✕"
 close.TextColor3 = Color3.new(1,1,1)
 close.Font = Enum.Font.GothamBold
 close.TextScaled = true
+close.Parent = top
 close.MouseButton1Click:Connect(function()
     sg:Destroy()
     _G.autoActive = false
 end)
 
 -- Fruits Label
-local fLabel = Instance.new("TextLabel", main)
-fLabel.Size = UDim2.new(1, -30, 0, 40)
-fLabel.Position = UDim2.new(0, 15, 0, 0.1, 0)
+local fLabel = Instance.new("TextLabel")
+fLabel.Size = UDim2.new(1, -30, 0, 35)
+fLabel.Position = UDim2.new(0, 15, 0, 60)
 fLabel.BackgroundTransparency = 1
-fLabel.Text = "🍎 FRUITS (Click to select)"
+fLabel.Text = "🍎 FRUITS - Click to select"
 fLabel.TextColor3 = Color3.new(1,1,1)
 fLabel.Font = Enum.Font.GothamBold
 fLabel.TextScaled = true
 fLabel.TextXAlignment = Enum.TextXAlignment.Left
+fLabel.Parent = main
 
 -- Fruits Scroll
-local fScroll = Instance.new("ScrollingFrame", main)
-fScroll.Size =
+local fScroll = Instance.new("ScrollingFrame")
+fScroll.Size = UDim2.new(1, -30, 0, 160)
+fScroll.Position = UDim2.new(0, 15, 0, 100)
+fScroll.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+fScroll.BorderSizePixel = 0
+fScroll.ScrollBarThickness = 6
+fScroll.ScrollBarImageColor3 = Color3.fromRGB(120,120,120)
+fScroll.Parent = main
+local fList = Instance.new("UIListLayout")
+fList.Padding = UDim.new(0, 6)
+fList.SortOrder = Enum.SortOrder.LayoutOrder
+fList.Parent = fScroll
+local fPadding = Instance.new("UIPadding")
+fPadding.PaddingLeft = UDim.new(0, 8)
+fPadding.PaddingRight = UDim.new(0, 8)
+fPadding.Parent = fScroll
+fScroll.CanvasSize = UDim2.new(0,0,0,0)
+fList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    fScroll.CanvasSize = UDim2.new(0,0,0, fList.AbsoluteContentSize.Y + 20)
+end)
+
+-- Pets Label
+local pLabel = Instance.new("TextLabel")
+pLabel.Size = UDim2.new(1, -30, 0, 35)
+pLabel.Position = UDim2.new(0, 15, 0, 275)
+pLabel.BackgroundTransparency = 1
+pLabel.Text = "🐶 PETS - Click to select"
+pLabel.TextColor3 = Color3.new(1,1,1)
+pLabel.Font = Enum.Font.GothamBold
+pLabel.TextScaled = true
+pLabel.TextXAlignment = Enum.TextXAlignment.Left
+pLabel.Parent = main
+
+-- Pets Scroll
+local pScroll = Instance.new("ScrollingFrame")
+pScroll.Size = UDim2.new(1, -30, 0, 120)
+pScroll.Position = UDim2.new(0, 15, 0, 315)
+pScroll.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+pScroll.BorderSizePixel = 0
+pScroll.ScrollBarThickness = 6
+pScroll.ScrollBarImageColor3 = Color3.fromRGB(120,120,120)
+pScroll.Parent = main
+local pList = Instance.new("UIListLayout")
+pList.Padding = UDim.new(0, 6)
+pList.SortOrder = Enum.SortOrder.LayoutOrder
+pList.Parent = pScroll
+local pPadding = Instance.new("UIPadding")
+pPadding.PaddingLeft = UDim.new(0, 8)
+pPadding.PaddingRight = UDim.new(0, 8)
+pPadding.Parent = pScroll
+pScroll.CanvasSize = UDim2.new(0,0,
