@@ -1,163 +1,69 @@
--- Egg Enhancer - by Jandel | Simple & Aesthetic
-local TS = game:GetService("TweenService")
-local UIS = game:GetService("UserInputService")
-local Player = game.Players.LocalPlayer
-local PG = Player:WaitForChild("PlayerGui")
+-- FIXED Pet-Triggered Auto Carrot Favoriter (No more errors!)
+-- Optimized hook: NO recursion, NO lag, NO interference with GameAnalytics or other scripts
+-- Starts on EquipPet UUID, Stops on UnequipPet UUID
 
-local GUI = Instance.new("ScreenGui", PG)
-GUI.Name = "JandelUI"
-GUI.ResetOnSpawn = false
-GUI.DisplayOrder = 999
+local RS = game:GetService("ReplicatedStorage")
+local GameEvents = RS:WaitForChild("GameEvents")
+local PetsService = GameEvents:WaitForChild("PetsService")
+local Favorite_Item = GameEvents:WaitForChild("Favorite_Item")
 
--- Main Frame (Pure Black with soft glow)
-local Frame = Instance.new("Frame", GUI)
-Frame.Size = UDim2.fromScale(0.7, 0.68)
-Frame.Position = UDim2.fromScale(0.5, 0.5)
-Frame.AnchorPoint = Vector2.new(0.5, 0.5)
-Frame.BackgroundColor3 = Color3.new(0,0,0)
-Frame.BorderSizePixel = 0
-Frame.Visible = false
-local corner = Instance.new("UICorner", Frame)
-corner.CornerRadius = UDim.new(0, 16)
+local mt = getrawmetatable(game)
+local old_namecall = mt.__namecall
+setreadonly(mt, false)
 
--- Soft outer glow
-local shadow = Instance.new("ImageLabel", Frame)
-shadow.Size = UDim2.fromScale(1.1, 1.2)
-shadow.Position = UDim2.fromScale(0.5, 0.5)
-shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://6014261993"
-shadow.ImageColor3 = Color3.new(0,0,0)
-shadow.ImageTransparency = 0.6
-shadow.ZIndex = -1
-
--- Title
-local Title = Instance.new("TextLabel", Frame)
-Title.Size = UDim2.fromScale(1, 0.12)
-Title.BackgroundTransparency = 1
-Title.Text = "Egg Enhancer - by Jandel"
-Title.TextColor3 = Color3.new(1,1,1)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 24
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Instance.new("UIPadding", Title).PaddingLeft = UDim.new(0, 22)
-
--- Minimize (clean −)
-local Min = Instance.new("TextButton", Title)
-Min.Size = UDim2.fromOffset(36, 36)
-Min.Position = UDim2.fromScale(1, 0.5)
-Min.AnchorPoint = Vector2.new(1, 0.5)
-Min.BackgroundTransparency = 1
-Min.Text = "−"
-Min.TextColor3 = Color3.new(1,1,1)
-Min.Font = Enum.Font.GothamBold
-Min.TextSize = 28
-
--- Tabs Container
-local TabsFrame = Instance.new("Frame", Frame)
-TabsFrame.Size = UDim2.fromScale(1, 0.1)
-TabsFrame.Position = UDim2.fromScale(0, 0.12)
-TabsFrame.BackgroundTransparency = 1
-
-local TabLayout = Instance.new("UIListLayout", TabsFrame)
-TabLayout.FillDirection = Enum.FillDirection.Horizontal
-TabLayout.Padding = UDim.new(0, 12)
-TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
--- Content
-local Content = Instance.new("Frame", Frame)
-Content.Size = UDim2.fromScale(0.92, 0.72)
-Content.Position = UDim2.fromScale(0.04, 0.24)
-Content.BackgroundTransparency = 1
-
-local Tabs = {"Fruit Name & Pet UUID", "Seal Enhancer", "Koi Enhancer"}
-local CurrentPage
-
-for i, name in ipairs(Tabs) do
-	local btn = Instance.new("TextButton", TabsFrame)
-	btn.Size = UDim2.fromScale(0.3, 1)
-	btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
-	btn.Text = name
-	btn.TextColor3 = Color3.fromRGB(180,180,180)
-	btn.Font = Enum.Font.GothamMedium
-	btn.TextScaled = true
-	local c = Instance.new("UICorner", btn)
-	c.CornerRadius = UDim.new(0, 10)
-	local stroke = Instance.new("UIStroke", btn)
-	stroke.Color = Color3.fromRGB(60,60,60)
-	stroke.Thickness = 1
-
-	local page = Instance.new("ScrollingFrame", Content)
-	page.Size = UDim2.fromScale(1,1)
-	page.BackgroundTransparency = 1
-	page.Visible = false
-	page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	page.ScrollBarThickness = 0
-	Instance.new("UIPadding", page).PaddingTop = UDim.new(0, 10)
-
-	btn.MouseButton1Click:Connect(function()
-		if CurrentPage then CurrentPage.Visible = false end
-		CurrentPage = page; page.Visible = true
-		for _, b in TabsFrame:GetChildren() do
-			if b:IsA("TextButton") then
-				b.BackgroundColor3 = Color3.fromRGB(30,30,30)
-				b.TextColor3 = Color3.fromRGB(180,180,180)
-			end
-		end
-		btn.BackgroundColor3 = Color3.new(1,1,1)
-		btn.TextColor3 = Color3.new(0,0,0)
-	end)
-
-	if i == 1 then
-		btn.BackgroundColor3 = Color3.new(1,1,1)
-		btn.TextColor3 = Color3.new(0,0,0)
-		page.Visible = true
-		CurrentPage = page
-	end
-end
-
--- Sleek Black J Button
-local J = Instance.new("TextButton", GUI)
-J.Size = UDim2.fromOffset(50,50)
-J.Position = UDim2.fromScale(0.04, 0.85)
-J.BackgroundColor3 = Color3.new(0,0,0)
-J.Text = "J"
-J.TextColor3 = Color3.new(1,1,1)
-J.Font = Enum.Font.GothamBlack
-J.TextSize = 28
-Instance.new("UICorner", J).CornerRadius = UDim.new(1,0) -- Perfect circle
-
--- Drag J
-local dragInput, dragStart, startPos
-J.InputBegan:Connect(function(i)
-	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-		dragStart = i.Position
-		startPos = J.Position
-		dragging = true
-	end
-end)
-J.InputEnded:Connect(function() dragging = false end)
-UIS.InputChanged:Connect(function(i)
-	if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-		J.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + (i.Position - dragStart).X,
-		                      startPos.Y.Scale, startPos.Y.Offset + (i.Position - dragStart).Y)
-	end
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    
+    -- Early exit for NON-FireServer (99% of calls)
+    if method ~= "FireServer" then
+        return old_namecall(self, ...)
+    end
+    
+    -- Early exit for non-RemoteEvents & non-PetsService (super safe & fast)
+    if self.ClassName ~= "RemoteEvent" or self ~= PetsService then
+        return old_namecall(self, ...)
+    end
+    
+    local args = {...}
+    if typeof(args[1]) ~= "string" then
+        return old_namecall(self, ...)
+    end
+    
+    if args[1] == "EquipPet" and args[2] == "{9c8926b2-0362-4019-85e7-905ea7a8433a}" then
+        _G.auto = true
+        print("🟢 Auto Carrot Favoriter STARTED! (Pet equipped)")
+        
+    elseif args[1] == "UnequipPet" and args[2] == "{9c8926b2-0362-4019-85e7-905ea7a8433a}" then
+        _G.auto = false
+        print("🔴 Auto Carrot Favoriter STOPPED! (Pet unequipped)")
+    end
+    
+    return old_namecall(self, ...)
 end)
 
--- Toggle
-local open = false
-local function toggle()
-	open = not open
-	Frame.Visible = open
-	if open then
-		Frame.Position = UDim2.fromScale(0.5, -0.7)
-		TS:Create(Frame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.fromScale(0.5, 0.5)}):Play()
-	else
-		TS:Create(Frame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.fromScale(0.5, -1)}):Play()
-	end
-end
+setreadonly(mt, true)
 
-J.MouseButton1Click:Connect(toggle)
-Min.MouseButton1Click:Connect(toggle)
+-- Safe auto loop (pcall wrapped, no re-entrancy issues)
+task.spawn(function()
+    while true do
+        if _G.auto then
+            local success, carrot = pcall(function()
+                local player = game.Players.LocalPlayer
+                return player.Backpack:FindFirstChild("Carrot [0.38kg]") 
+                    or (player.Character and player.Character:FindFirstChild("Carrot [0.38kg]"))
+            end)
+            
+            if success and carrot then
+                pcall(function()
+                    Favorite_Item:FireServer(carrot)
+                end)
+            end
+        end
+        task.wait(0.2)
+    end
+end)
 
-print("Egg Enhancer Loaded | Clean & Aesthetic | Tap J")
+print("✅ FIXED Pet-Triggered Auto Carrot Favoriter LOADED! (0.2s loop)")
+print("💡 NO MORE ERRORS! Hook is optimized & safe.")
+print("💡 Equip pet {9c8926b2-0362-4019-85e7-905ea7a8433a} to START | Unequip to STOP")
+print("💡 Works with GUI/scripts. Re-execute if rejoin.")
